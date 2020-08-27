@@ -15,12 +15,13 @@ namespace Data.Repositories
 
         public IEnumerable<AutorModel> GetAll()
         {
-            var sqlConnection = new SqlConnection(_connectionString);
+            const string commandText = "SELECT * FROM Autor";
 
-            var commandText = "SELECT * FROM Autor";
-            var sqlCommand = new SqlCommand(commandText, sqlConnection);
-
-            sqlCommand.CommandType = CommandType.Text;
+            using var sqlConnection = new SqlConnection(_connectionString);
+            using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
 
             sqlConnection.Open();
 
@@ -42,11 +43,6 @@ namespace Data.Repositories
                 };
                 autores.Add(autorModel);
             }
-
-            sqlCommand.Dispose();
-            sqlConnection.Close();
-            sqlConnection.Dispose();
-
             return autores;
         }
 
