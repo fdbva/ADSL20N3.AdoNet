@@ -1,4 +1,5 @@
-﻿using Data.Repositories;
+﻿using System.Threading.Tasks;
+using Data.Repositories;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,14 @@ namespace MVC.Controllers
             _autorRepository = autorRepository;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(_autorRepository.GetAll());
+            return View(await _autorRepository.GetAllAsync());
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            return View(_autorRepository.GetById(id));
+            return View(await _autorRepository.GetByIdAsync(id));
         }
 
         [HttpGet]
@@ -35,29 +36,29 @@ namespace MVC.Controllers
         }
 
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return View(_autorRepository.GetById(id));
+            return View(await _autorRepository.GetByIdAsync(id));
         }
 
         [HttpPost]
-        public IActionResult Edit(AutorModel autorModel)
+        public async Task<IActionResult> Edit(AutorModel autorModel)
         {
-            _autorRepository.Edit(autorModel);
+            await _autorRepository.EditAsync(autorModel);
 
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            return View(_autorRepository.GetById(id));
+            return View(await _autorRepository.GetByIdAsync(id));
         }
 
         [HttpPost]
-        public IActionResult Delete(AutorModel autorModel)
+        public async Task<IActionResult> Delete(AutorModel autorModel)
         {
-            _autorRepository.Remove(autorModel);
+            await _autorRepository.RemoveAsync(autorModel);
 
             return RedirectToAction(nameof(Index));
         }

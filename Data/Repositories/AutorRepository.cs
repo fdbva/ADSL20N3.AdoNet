@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using Domain.Models;
 
 namespace Data.Repositories
@@ -15,7 +16,8 @@ namespace Data.Repositories
 
         public IEnumerable<AutorModel> GetAll()
         {
-            const string commandText = "SELECT * FROM Autor";
+            const string commandText =
+                "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor";
 
             using var sqlConnection = new SqlConnection(_connectionString);
             using var sqlCommand = new SqlCommand(commandText, sqlConnection)
@@ -46,10 +48,68 @@ namespace Data.Repositories
             return autores;
         }
 
-        public AutorModel GetById(int id)
+        public async Task<IEnumerable<AutorModel>> GetAllAsync()
         {
-            var autor = Autores.First(x => x.Id == id);
+            const string commandText = 
+                "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor";
 
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
+
+            await sqlConnection.OpenAsync();
+            var reader = await sqlCommand.ExecuteReaderAsync();
+
+            var autores = new List<AutorModel>();
+            while (await reader.ReadAsync())
+            {
+                var id = await reader.GetFieldValueAsync<int>(0);
+                var nome = await reader.GetFieldValueAsync<string>(1);
+                var ultimoNome = await reader.GetFieldValueAsync<string>(2);
+                var nascimento = await reader.GetFieldValueAsync<DateTime>(3);
+                var autorModel = new AutorModel
+                {
+                    Id = id,
+                    Nome = nome,
+                    UltimoNome = ultimoNome,
+                    Nascimento = nascimento
+                };
+                autores.Add(autorModel);
+            }
+            return autores;
+        }
+
+        public async Task<AutorModel> GetByIdAsync(int id)
+        {
+            const string commandText =
+                "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor WHERE Id = @id;";
+
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
+
+            sqlCommand.Parameters
+                .Add("@id", SqlDbType.Int)
+                .Value = id;
+
+            await sqlConnection.OpenAsync();
+            var reader = await sqlCommand.ExecuteReaderAsync();
+
+            var canRead = await reader.ReadAsync();
+            if (!canRead)
+                return null;
+
+            var autor = new AutorModel
+            {
+                Id = await reader.GetFieldValueAsync<int>(0),
+                Nome = await reader.GetFieldValueAsync<string>(1),
+                UltimoNome = await reader.GetFieldValueAsync<string>(2),
+                Nascimento = await reader.GetFieldValueAsync<DateTime>(3)
+            };
             return autor;
         }
 
@@ -58,18 +118,18 @@ namespace Data.Repositories
             Autores.Add(autorModel);
         }
 
-        public void Edit(AutorModel autorModel)
+        public async Task EditAsync(AutorModel autorModel)
         {
-            var autorInMemory = GetById(autorModel.Id);
+            var autorInMemory = await GetByIdAsync(autorModel.Id);
 
             autorInMemory.Nome = autorModel.Nome;
             autorInMemory.UltimoNome = autorModel.UltimoNome;
             autorInMemory.Nascimento = autorModel.Nascimento;
         }
 
-        public void Remove(AutorModel autorModel)
+        public async Task RemoveAsync(AutorModel autorModel)
         {
-            var autorInMemory = GetById(autorModel.Id);
+            var autorInMemory = await GetByIdAsync(autorModel.Id);
 
             Autores.Remove(autorInMemory);
         }

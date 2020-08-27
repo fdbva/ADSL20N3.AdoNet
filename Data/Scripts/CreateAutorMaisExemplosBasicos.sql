@@ -22,6 +22,7 @@ INSERT INTO Autor
 
 -- https://www.w3schools.com/sql/sql_select.asp
 SELECT * FROM Autor;
+SELECT * FROM Autor WHERE Id = 2;
 
 -- https://www.w3schools.com/sql/sql_delete.asp
 DELETE FROM Autor WHERE Id > 2;
