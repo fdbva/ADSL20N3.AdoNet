@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using Domain.Models;
 
@@ -6,11 +9,45 @@ namespace Data.Repositories
 {
     public class AutorRepository
     {
+        private static string _connectionString =
+            "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADSL20N3;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
         public static List<AutorModel> Autores { get; } = new List<AutorModel>();
 
         public IEnumerable<AutorModel> GetAll()
         {
-            return Autores;
+            var sqlConnection = new SqlConnection(_connectionString);
+
+            var commandText = "SELECT * FROM Autor";
+            var sqlCommand = new SqlCommand(commandText, sqlConnection);
+
+            sqlCommand.CommandType = CommandType.Text;
+
+            sqlConnection.Open();
+
+            var reader = sqlCommand.ExecuteReader();
+
+            var autores = new List<AutorModel>();
+            while (reader.Read())
+            {
+                var id = reader.GetFieldValue<int>(0);
+                var nome = reader.GetFieldValue<string>(1);
+                var ultimoNome = reader.GetFieldValue<string>(2);
+                var nascimento = reader.GetFieldValue<DateTime>(3);
+                var autorModel = new AutorModel
+                {
+                    Id = id,
+                    Nome = nome,
+                    UltimoNome = ultimoNome,
+                    Nascimento = nascimento
+                };
+                autores.Add(autorModel);
+            }
+
+            sqlCommand.Dispose();
+            sqlConnection.Close();
+            sqlConnection.Dispose();
+
+            return autores;
         }
 
         public AutorModel GetById(int id)
