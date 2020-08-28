@@ -62,13 +62,18 @@ namespace Data.Repositories
             await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();
 
+            var idColumnIndex = reader.GetOrdinal("Id");
+            var nomeColumnIndex = reader.GetOrdinal("Nome");
+            var ultimoNomeColumnIndex = reader.GetOrdinal("UltimoNome");
+            var nascimentoColumnIndex = reader.GetOrdinal("Nascimento");
+
             var autores = new List<AutorModel>();
             while (await reader.ReadAsync())
             {
-                var id = await reader.GetFieldValueAsync<int>(0);
-                var nome = await reader.GetFieldValueAsync<string>(1);
-                var ultimoNome = await reader.GetFieldValueAsync<string>(2);
-                var nascimento = await reader.GetFieldValueAsync<DateTime>(3);
+                var id = await reader.GetFieldValueAsync<int>(idColumnIndex);
+                var nome = await reader.GetFieldValueAsync<string>(nomeColumnIndex);
+                var ultimoNome = await reader.GetFieldValueAsync<string>(ultimoNomeColumnIndex);
+                var nascimento = await reader.GetFieldValueAsync<DateTime>(nascimentoColumnIndex);
                 var autorModel = new AutorModel
                 {
                     Id = id,
