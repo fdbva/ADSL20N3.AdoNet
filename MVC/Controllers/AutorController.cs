@@ -28,11 +28,11 @@ namespace MVC.Controllers
         public IActionResult Create() => View();
 
         [HttpPost]
-        public IActionResult Create(AutorModel autorModel)
+        public async Task<IActionResult> Create(AutorModel autorModel)
         {
-            _autorRepository.Add(autorModel);
+            var autorId = await _autorRepository.AddAsync(autorModel);
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new { id = autorId });
         }
 
         [HttpGet]

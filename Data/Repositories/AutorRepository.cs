@@ -12,7 +12,6 @@ namespace Data.Repositories
     {
         private static string _connectionString =
             "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADSL20N3;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-        public static List<AutorModel> Autores { get; } = new List<AutorModel>();
 
         public IEnumerable<AutorModel> GetAll()
         {
@@ -118,25 +117,85 @@ namespace Data.Repositories
             return autor;
         }
 
-        public void Add(AutorModel autorModel)
+        public async Task<int> AddAsync(AutorModel autorModel)
         {
-            Autores.Add(autorModel);
+            const string commandText =
+@"INSERT INTO Autor
+	(Nome, UltimoNome, Nascimento)
+    OUTPUT INSERTED.Id
+	VALUES (@nome, @ultimoNome, @nascimento);";
+
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
+
+            sqlCommand.Parameters
+                .Add("@nome", SqlDbType.NVarChar)
+                .Value = autorModel.Nome;
+            sqlCommand.Parameters
+                .Add("@ultimoNome", SqlDbType.NVarChar)
+                .Value = autorModel.UltimoNome;
+            sqlCommand.Parameters
+                .Add("@nascimento", SqlDbType.DateTime2)
+                .Value = autorModel.Nascimento;
+
+            await sqlConnection.OpenAsync();
+
+            var outputId = (int)await sqlCommand.ExecuteScalarAsync();
+
+            return outputId;
         }
 
         public async Task EditAsync(AutorModel autorModel)
         {
-            var autorInMemory = await GetByIdAsync(autorModel.Id);
+            const string commandText =
+@"UPDATE Autor
+	SET Nome = @nome, UltimoNome = @ultimoNome, Nascimento = @nascimento
+	WHERE Id = @id;";
 
-            autorInMemory.Nome = autorModel.Nome;
-            autorInMemory.UltimoNome = autorModel.UltimoNome;
-            autorInMemory.Nascimento = autorModel.Nascimento;
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
+
+            sqlCommand.Parameters
+                .Add("@nome", SqlDbType.NVarChar)
+                .Value = autorModel.Nome;
+            sqlCommand.Parameters
+                .Add("@ultimoNome", SqlDbType.NVarChar)
+                .Value = autorModel.UltimoNome;
+            sqlCommand.Parameters
+                .Add("@nascimento", SqlDbType.DateTime2)
+                .Value = autorModel.Nascimento;
+            sqlCommand.Parameters
+                .Add("@id", SqlDbType.Int)
+                .Value = autorModel.Id;
+
+            await sqlConnection.OpenAsync();
+
+            await sqlCommand.ExecuteScalarAsync();
         }
 
         public async Task RemoveAsync(AutorModel autorModel)
         {
-            var autorInMemory = await GetByIdAsync(autorModel.Id);
+            const string commandText = "DELETE FROM Autor WHERE Id = @id";
 
-            Autores.Remove(autorInMemory);
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
+            {
+                CommandType = CommandType.Text
+            };
+
+            sqlCommand.Parameters
+                .Add("@id", SqlDbType.Int)
+                .Value = autorModel.Id;
+
+            await sqlConnection.OpenAsync();
+
+            await sqlCommand.ExecuteScalarAsync();
         }
     }
 }
