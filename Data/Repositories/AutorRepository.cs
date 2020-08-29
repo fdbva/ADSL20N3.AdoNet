@@ -13,6 +13,15 @@ namespace Data.Repositories
         private static string _connectionString =
             "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADSL20N3;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
 
+        //TODO: Busca que é executada no banco, trazendo apenas os resultados necessários.
+        public async Task<IEnumerable<AutorModel>> Search(string search)
+        {
+            var autores = await GetAllAsync();
+
+            return autores
+                .Where(x => string.Equals(x.Nome, search, StringComparison.OrdinalIgnoreCase));
+        }
+
         public IEnumerable<AutorModel> GetAll()
         {
             const string commandText =
