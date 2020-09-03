@@ -4,7 +4,7 @@ using Domain.Models;
 
 namespace Data.Repositories
 {
-    public class LivroRepository
+    public class LivroInMemoryRepository
     {
         public static List<LivroModel> Livros { get; } = new List<LivroModel>();
 
