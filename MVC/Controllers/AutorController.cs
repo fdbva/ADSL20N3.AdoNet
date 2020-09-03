@@ -7,9 +7,9 @@ namespace MVC.Controllers
 {
     public class AutorController : Controller
     {
-        private readonly AutorRepository _autorRepository;
+        private readonly IAutorRepository _autorRepository;
 
-        public AutorController(AutorRepository autorRepository)
+        public AutorController(IAutorRepository autorRepository)
         {
             _autorRepository = autorRepository;
         }

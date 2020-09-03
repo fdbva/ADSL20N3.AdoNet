@@ -4,13 +4,19 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Domain.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace Data.Repositories
 {
-    public class LivroSqlRepository
+    public class LivroSqlRepository : ILivroRepository
     {
-        private static string _connectionString =
-            "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADSL20N3;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        private static string _connectionString;
+
+        public LivroSqlRepository(
+            IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("BibliotecaDatabase");
+        }
 
         public async Task<IEnumerable<LivroModel>> GetAllAsync()
         {

@@ -5,13 +5,19 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace Data.Repositories
 {
-    public class AutorRepository
+    public class AutorSqlRepository : IAutorRepository
     {
-        private static string _connectionString =
-            "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADSL20N3;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        private static string _connectionString;
+
+        public AutorSqlRepository(
+            IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("BibliotecaDatabase");
+        }
 
         //TODO: Busca que é executada no banco, trazendo apenas os resultados necessários.
         public async Task<IEnumerable<AutorModel>> Search(string search)
@@ -20,40 +26,6 @@ namespace Data.Repositories
 
             return autores
                 .Where(x => string.Equals(x.Nome, search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public IEnumerable<AutorModel> GetAll()
-        {
-            const string commandText =
-                "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor";
-
-            using var sqlConnection = new SqlConnection(_connectionString);
-            using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
-
-            sqlConnection.Open();
-
-            var reader = sqlCommand.ExecuteReader();
-
-            var autores = new List<AutorModel>();
-            while (reader.Read())
-            {
-                var id = reader.GetFieldValue<int>(0);
-                var nome = reader.GetFieldValue<string>(1);
-                var ultimoNome = reader.GetFieldValue<string>(2);
-                var nascimento = reader.GetFieldValue<DateTime>(3);
-                var autorModel = new AutorModel
-                {
-                    Id = id,
-                    Nome = nome,
-                    UltimoNome = ultimoNome,
-                    Nascimento = nascimento
-                };
-                autores.Add(autorModel);
-            }
-            return autores;
         }
 
         public async Task<IEnumerable<AutorModel>> GetAllAsync()

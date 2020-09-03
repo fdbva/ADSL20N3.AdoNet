@@ -26,8 +26,11 @@ namespace MVC
         {
             services.AddControllersWithViews();
 
-            services.AddSingleton<AutorRepository>();
-            services.AddSingleton<LivroSqlRepository>();
+            services.AddSingleton<IAutorRepository, AutorSqlRepository>();
+            services.AddSingleton<ILivroRepository, LivroSqlRepository>();
+
+            //deixei para teste de debug caso alguem tenha dificuldades
+            //var connectionString = Configuration.GetConnectionString("BibliotecaDatabase");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

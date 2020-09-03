@@ -7,21 +7,21 @@ namespace MVC.Controllers
 {
     public class LivroController : Controller
     {
-        private readonly LivroSqlRepository _livroSqlRepository;
+        private readonly ILivroRepository _livroRepository;
 
-        public LivroController(LivroSqlRepository livroSqlRepository)
+        public LivroController(ILivroRepository livroRepository)
         {
-            _livroSqlRepository = livroSqlRepository;
+            _livroRepository = livroRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await _livroSqlRepository.GetAllAsync());
+            return View(await _livroRepository.GetAllAsync());
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            return View(await _livroSqlRepository.GetByIdAsync(id));
+            return View(await _livroRepository.GetByIdAsync(id));
         }
 
         [HttpGet]
@@ -30,7 +30,7 @@ namespace MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(LivroModel livroModel)
         {
-            var livroId = await _livroSqlRepository.AddAsync(livroModel);
+            var livroId = await _livroRepository.AddAsync(livroModel);
 
             return RedirectToAction(nameof(Details), new { id = livroId });
         }
@@ -38,13 +38,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            return View(await _livroSqlRepository.GetByIdAsync(id));
+            return View(await _livroRepository.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(LivroModel livroModel)
         {
-            await _livroSqlRepository.EditAsync(livroModel);
+            await _livroRepository.EditAsync(livroModel);
 
             return RedirectToAction(nameof(Index));
         }
@@ -52,13 +52,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _livroSqlRepository.GetByIdAsync(id));
+            return View(await _livroRepository.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(LivroModel livroModel)
         {
-            await _livroSqlRepository.RemoveAsync(livroModel);
+            await _livroRepository.RemoveAsync(livroModel);
 
             return RedirectToAction(nameof(Index));
         }
