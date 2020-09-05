@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Threading.Tasks;
 using Domain.Models;
 using Microsoft.Extensions.Configuration;
@@ -19,25 +18,29 @@ namespace Data.Repositories
             _connectionString = configuration.GetConnectionString("BibliotecaDatabase");
         }
 
-        //TODO: Busca que é executada no banco, trazendo apenas os resultados necessários.
-        public async Task<IEnumerable<AutorModel>> Search(string search)
+        public async Task<IEnumerable<AutorModel>> GetAllAsync(string search)
         {
-            var autores = await GetAllAsync();
-
-            return autores
-                .Where(x => string.Equals(x.Nome, search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public async Task<IEnumerable<AutorModel>> GetAllAsync()
-        {
-            const string commandText = 
+            var commandText = 
                 "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor";
+
+            var searchHasValue = !string.IsNullOrWhiteSpace(search);
+            if (searchHasValue)
+            {
+                commandText += " WHERE Nome LIKE @search OR UltimoNome Like @search";
+            }
 
             await using var sqlConnection = new SqlConnection(_connectionString);
             await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
             {
                 CommandType = CommandType.Text
             };
+
+            if (searchHasValue)
+            {
+                sqlCommand.Parameters
+                    .Add("@search", SqlDbType.NVarChar)
+                    .Value = $"%{search}%";
+            }
 
             await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();

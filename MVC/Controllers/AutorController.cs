@@ -14,9 +14,10 @@ namespace MVC.Controllers
             _autorRepository = autorRepository;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
-            return View(await _autorRepository.GetAllAsync());
+            ViewBag.Search = search;
+            return View(await _autorRepository.GetAllAsync(search));
         }
 
         public async Task<IActionResult> Details(int id)
