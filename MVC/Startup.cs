@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Data.Repositories;
+using Domain.Model.Interfaces.Repositories;
+using Domain.Model.Interfaces.Services;
+using Domain.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -28,6 +31,8 @@ namespace MVC
 
             services.AddSingleton<IAutorRepository, AutorSqlRepository>();
             services.AddSingleton<ILivroRepository, LivroSqlRepository>();
+            services.AddSingleton<IAutorService, AutorService>();
+            services.AddSingleton<ILivroService, LivroService>();
 
             //deixei para teste de debug caso alguem tenha dificuldades
             //var connectionString = Configuration.GetConnectionString("BibliotecaDatabase");

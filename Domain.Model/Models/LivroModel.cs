@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Domain.Models
+namespace Domain.Model.Models
 {
     public class LivroModel
     {

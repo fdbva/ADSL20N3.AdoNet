@@ -1,27 +1,27 @@
 ﻿using System.Threading.Tasks;
-using Data.Repositories;
-using Domain.Models;
+using Domain.Model.Interfaces.Services;
+using Domain.Model.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MVC.Controllers
 {
     public class LivroController : Controller
     {
-        private readonly ILivroRepository _livroRepository;
+        private readonly ILivroService _livroService;
 
-        public LivroController(ILivroRepository livroRepository)
+        public LivroController(ILivroService livroService)
         {
-            _livroRepository = livroRepository;
+            _livroService = livroService;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await _livroRepository.GetAllAsync());
+            return View(await _livroService.GetAllAsync());
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            return View(await _livroRepository.GetByIdAsync(id));
+            return View(await _livroService.GetByIdAsync(id));
         }
 
         [HttpGet]
@@ -30,7 +30,7 @@ namespace MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(LivroModel livroModel)
         {
-            var livroId = await _livroRepository.AddAsync(livroModel);
+            var livroId = await _livroService.AddAsync(livroModel);
 
             return RedirectToAction(nameof(Details), new { id = livroId });
         }
@@ -38,13 +38,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            return View(await _livroRepository.GetByIdAsync(id));
+            return View(await _livroService.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(LivroModel livroModel)
         {
-            await _livroRepository.EditAsync(livroModel);
+            await _livroService.EditAsync(livroModel);
 
             return RedirectToAction(nameof(Index));
         }
@@ -52,13 +52,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _livroRepository.GetByIdAsync(id));
+            return View(await _livroService.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(LivroModel livroModel)
         {
-            await _livroRepository.RemoveAsync(livroModel);
+            await _livroService.RemoveAsync(livroModel);
 
             return RedirectToAction(nameof(Index));
         }

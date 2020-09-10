@@ -1,28 +1,28 @@
 ﻿using System.Threading.Tasks;
-using Data.Repositories;
-using Domain.Models;
+using Domain.Model.Interfaces.Services;
+using Domain.Model.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MVC.Controllers
 {
     public class AutorController : Controller
     {
-        private readonly IAutorRepository _autorRepository;
+        private readonly IAutorService _autorService;
 
-        public AutorController(IAutorRepository autorRepository)
+        public AutorController(IAutorService autorService)
         {
-            _autorRepository = autorRepository;
+            _autorService = autorService;
         }
 
         public async Task<IActionResult> Index(string search)
         {
             ViewBag.Search = search;
-            return View(await _autorRepository.GetAllAsync(search));
+            return View(await _autorService.GetAllAsync(search));
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            return View(await _autorRepository.GetByIdAsync(id));
+            return View(await _autorService.GetByIdAsync(id));
         }
 
         [HttpGet]
@@ -31,7 +31,7 @@ namespace MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(AutorModel autorModel)
         {
-            var autorId = await _autorRepository.AddAsync(autorModel);
+            var autorId = await _autorService.AddAsync(autorModel);
 
             return RedirectToAction(nameof(Details), new { id = autorId });
         }
@@ -39,13 +39,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            return View(await _autorRepository.GetByIdAsync(id));
+            return View(await _autorService.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(AutorModel autorModel)
         {
-            await _autorRepository.EditAsync(autorModel);
+            await _autorService.EditAsync(autorModel);
 
             return RedirectToAction(nameof(Index));
         }
@@ -53,13 +53,13 @@ namespace MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            return View(await _autorRepository.GetByIdAsync(id));
+            return View(await _autorService.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(AutorModel autorModel)
         {
-            await _autorRepository.RemoveAsync(autorModel);
+            await _autorService.RemoveAsync(autorModel);
 
             return RedirectToAction(nameof(Index));
         }

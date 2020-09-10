@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Domain.Models;
+using Domain.Model.Models;
 
-namespace Data.Repositories
+namespace Domain.Model.Interfaces.Services
 {
-    public interface ILivroRepository
+    public interface ILivroService
     {
         Task<IEnumerable<LivroModel>> GetAllAsync();
         Task<LivroModel> GetByIdAsync(int id);
