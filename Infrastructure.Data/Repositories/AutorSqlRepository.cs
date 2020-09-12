@@ -102,7 +102,8 @@ namespace Data.Repositories
             return autor;
         }
 
-        public async Task<int> AddAsync(AutorModel autorModel)
+        public async Task<(int autorId, SqlConnection sqlConnection, SqlTransaction sqlTransaction)> AddAsync(
+            AutorModel autorModel)
         {
             const string commandText =
 @"INSERT INTO Autor
@@ -110,7 +111,7 @@ namespace Data.Repositories
     OUTPUT INSERTED.Id
 	VALUES (@nome, @ultimoNome, @nascimento);";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
+            var sqlConnection = new SqlConnection(_connectionString);
             await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
             {
                 CommandType = CommandType.Text
@@ -128,9 +129,12 @@ namespace Data.Repositories
 
             await sqlConnection.OpenAsync();
 
+            var sqlTransaction = sqlConnection.BeginTransaction();
+            sqlCommand.Transaction = sqlTransaction;
+
             var outputId = (int)await sqlCommand.ExecuteScalarAsync();
 
-            return outputId;
+            return (outputId, sqlConnection, sqlTransaction);
         }
 
         public async Task EditAsync(AutorModel autorModel)

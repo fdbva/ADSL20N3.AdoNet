@@ -2,6 +2,7 @@
 using Domain.Model.Interfaces.Services;
 using Domain.Model.Models;
 using Microsoft.AspNetCore.Mvc;
+using MVC.Models;
 
 namespace MVC.Controllers
 {
@@ -28,9 +29,9 @@ namespace MVC.Controllers
         public IActionResult Create() => View();
 
         [HttpPost]
-        public async Task<IActionResult> Create(LivroModel livroModel)
+        public async Task<IActionResult> Create(LivroAutorCreateViewModel livroAutorCreateViewModel)
         {
-            var livroId = await _livroService.AddAsync(livroModel);
+            var livroId = await _livroService.AddAsync(livroAutorCreateViewModel.ToModel());
 
             return RedirectToAction(nameof(Details), new { id = livroId });
         }

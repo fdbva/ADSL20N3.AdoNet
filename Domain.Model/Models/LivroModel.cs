@@ -9,7 +9,7 @@ namespace Domain.Model.Models
         public string Isbn { get; set; }
         public DateTime Publicacao { get; set; }
 
-        public int AutorId { get; set; }
+        public int? AutorId { get; set; }
         public AutorModel Autor { get; set; }
     }
 }

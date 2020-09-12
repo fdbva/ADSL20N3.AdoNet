@@ -8,8 +8,8 @@ namespace Domain.Model.Interfaces.Services
     {
         Task<IEnumerable<LivroModel>> GetAllAsync();
         Task<LivroModel> GetByIdAsync(int id);
-        Task<int> AddAsync(LivroModel autorModel);
-        Task EditAsync(LivroModel autorModel);
-        Task RemoveAsync(LivroModel autorModel);
+        Task<int> AddAsync(LivroAutorCreateModel livroAutorCreateModel);
+        Task EditAsync(LivroModel livroModel);
+        Task RemoveAsync(LivroModel livroModel);
     }
 }

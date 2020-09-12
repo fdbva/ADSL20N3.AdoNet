@@ -93,7 +93,19 @@ namespace Data.Repositories
             return autor;
         }
 
-        public async Task<int> AddAsync(LivroModel autorModel)
+        public async Task<int> AddAsync(
+            LivroModel livroModel)
+        {
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await sqlConnection.OpenAsync();
+
+            return await AddAsync(livroModel, sqlConnection);
+        }
+
+        public async Task<int> AddAsync(
+            LivroModel livroModel,
+            SqlConnection sqlConnection,
+            SqlTransaction sqlTransaction = null)
         {
             const string commandText =
 @"INSERT INTO Livro
@@ -101,7 +113,6 @@ namespace Data.Repositories
     OUTPUT INSERTED.Id
 	VALUES (@titulo, @isbn, @publicacao, @autorId);";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
             await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
             {
                 CommandType = CommandType.Text
@@ -109,18 +120,21 @@ namespace Data.Repositories
 
             sqlCommand.Parameters
                 .Add("@titulo", SqlDbType.NVarChar)
-                .Value = autorModel.Titulo;
+                .Value = livroModel.Titulo;
             sqlCommand.Parameters
                 .Add("@isbn", SqlDbType.NVarChar)
-                .Value = autorModel.Isbn;
+                .Value = livroModel.Isbn;
             sqlCommand.Parameters
                 .Add("@publicacao", SqlDbType.DateTime2)
-                .Value = autorModel.Publicacao;
+                .Value = livroModel.Publicacao;
             sqlCommand.Parameters
                 .Add("@autorId", SqlDbType.Int)
-                .Value = autorModel.AutorId;
+                .Value = livroModel.AutorId;
 
-            await sqlConnection.OpenAsync();
+            if (sqlTransaction != null)
+            {
+                sqlCommand.Transaction = sqlTransaction;
+            }
 
             var outputId = (int)await sqlCommand.ExecuteScalarAsync();
 
