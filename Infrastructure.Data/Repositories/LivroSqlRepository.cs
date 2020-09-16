@@ -7,7 +7,7 @@ using Domain.Model.Interfaces.Repositories;
 using Domain.Model.Models;
 using Microsoft.Extensions.Configuration;
 
-namespace Data.Repositories
+namespace Infrastructure.Data.Repositories
 {
     public class LivroSqlRepository : ILivroRepository
     {

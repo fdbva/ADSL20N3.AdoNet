@@ -1,7 +1,7 @@
-﻿using Data.Repositories;
-using Domain.Model.Interfaces.Repositories;
+﻿using Domain.Model.Interfaces.Repositories;
 using Domain.Model.Interfaces.Services;
 using Domain.Service;
+using Infrastructure.Data.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Crosscutting.IoC

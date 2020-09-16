@@ -2,7 +2,7 @@
 using System.Linq;
 using Domain.Model.Models;
 
-namespace Data.Repositories
+namespace Infrastructure.Data.Repositories
 {
     public class LivroInMemoryRepository
     {
