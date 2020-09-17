@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Domain.Model.Interfaces.Context;
 using Domain.Model.Interfaces.Repositories;
 using Domain.Model.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data.Repositories
 {
     public class AutorSqlRepository : IAutorRepository
     {
-        private static string _connectionString;
+        private readonly IAdoNetScopedContext _adoNetScopedContext;
 
         public AutorSqlRepository(
-            IConfiguration configuration)
+            IAdoNetScopedContext adoNetScopedContext)
         {
-            _connectionString = configuration.GetConnectionString("BibliotecaDatabase");
+            _adoNetScopedContext = adoNetScopedContext;
         }
 
         public async Task<IEnumerable<AutorModel>> GetAllAsync(string search)
@@ -30,11 +29,9 @@ namespace Infrastructure.Data.Repositories
                 commandText += " WHERE Nome LIKE @search OR UltimoNome Like @search";
             }
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             if (searchHasValue)
             {
@@ -42,8 +39,6 @@ namespace Infrastructure.Data.Repositories
                     .Add("@search", SqlDbType.NVarChar)
                     .Value = $"%{search}%";
             }
-
-            await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();
 
             var idColumnIndex = reader.GetOrdinal("Id");
@@ -75,17 +70,14 @@ namespace Infrastructure.Data.Repositories
             const string commandText =
                 "SELECT Id, Nome, UltimoNome, Nascimento FROM Autor WHERE Id = @id;";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@id", SqlDbType.Int)
                 .Value = id;
 
-            await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();
 
             var canRead = await reader.ReadAsync();
@@ -102,7 +94,7 @@ namespace Infrastructure.Data.Repositories
             return autor;
         }
 
-        public async Task<(int autorId, SqlConnection sqlConnection, SqlTransaction sqlTransaction)> AddAsync(
+        public async Task<int> AddAsync(
             AutorModel autorModel)
         {
             const string commandText =
@@ -111,11 +103,9 @@ namespace Infrastructure.Data.Repositories
     OUTPUT INSERTED.Id
 	VALUES (@nome, @ultimoNome, @nascimento);";
 
-            var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@nome", SqlDbType.NVarChar)
@@ -127,14 +117,9 @@ namespace Infrastructure.Data.Repositories
                 .Add("@nascimento", SqlDbType.DateTime2)
                 .Value = autorModel.Nascimento;
 
-            await sqlConnection.OpenAsync();
-
-            var sqlTransaction = sqlConnection.BeginTransaction();
-            sqlCommand.Transaction = sqlTransaction;
-
             var outputId = (int)await sqlCommand.ExecuteScalarAsync();
 
-            return (outputId, sqlConnection, sqlTransaction);
+            return outputId;
         }
 
         public async Task EditAsync(AutorModel autorModel)
@@ -144,11 +129,9 @@ namespace Infrastructure.Data.Repositories
 	SET Nome = @nome, UltimoNome = @ultimoNome, Nascimento = @nascimento
 	WHERE Id = @id;";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@nome", SqlDbType.NVarChar)
@@ -163,8 +146,6 @@ namespace Infrastructure.Data.Repositories
                 .Add("@id", SqlDbType.Int)
                 .Value = autorModel.Id;
 
-            await sqlConnection.OpenAsync();
-
             await sqlCommand.ExecuteScalarAsync();
         }
 
@@ -172,17 +153,13 @@ namespace Infrastructure.Data.Repositories
         {
             const string commandText = "DELETE FROM Autor WHERE Id = @id";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@id", SqlDbType.Int)
                 .Value = autorModel.Id;
-
-            await sqlConnection.OpenAsync();
 
             await sqlCommand.ExecuteScalarAsync();
         }

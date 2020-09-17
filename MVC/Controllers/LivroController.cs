@@ -31,9 +31,9 @@ namespace MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(LivroAutorCreateViewModel livroAutorCreateViewModel)
         {
-            var livroId = await _livroService.AddAsync(livroAutorCreateViewModel.ToModel());
+            await _livroService.AddAsync(livroAutorCreateViewModel.ToModel());
 
-            return RedirectToAction(nameof(Details), new { id = livroId });
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]

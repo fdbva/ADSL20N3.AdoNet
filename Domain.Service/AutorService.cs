@@ -28,7 +28,7 @@ namespace Domain.Service
 
         public async Task<int> AddAsync(AutorModel autorModel)
         {
-            var (autorId, _, _) = await _autorRepository.AddAsync(autorModel);
+            var autorId = await _autorRepository.AddAsync(autorModel);
 
             return autorId;
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Domain.Model.Interfaces.Context;
 using Domain.Model.Interfaces.Repositories;
 using Domain.Model.Interfaces.Services;
 using Domain.Model.Models;
@@ -10,13 +11,16 @@ namespace Domain.Service
 {
     public class LivroService : ILivroService
     {
+        private readonly IAdoNetScopedContext _adoNetScopedContext;
         private readonly IAutorRepository _autorRepository;
         private readonly ILivroRepository _livroRepository;
 
         public LivroService(
+            IAdoNetScopedContext adoNetScopedContext,
             IAutorRepository autorRepository,
             ILivroRepository livroRepository)
         {
+            _adoNetScopedContext = adoNetScopedContext;
             _autorRepository = autorRepository;
             _livroRepository = livroRepository;
         }
@@ -38,53 +42,18 @@ namespace Domain.Service
                 return await _livroRepository.AddAsync(livroAutorCreateModel.Livro);
             }
 
-            //Validação -> devemos validar regras de negócio!
-            //var autor = livroAutorCreateModel.Autor;
-            //if (string.IsNullOrWhiteSpace(autor.Nome) ||
-            //    string.IsNullOrWhiteSpace(autor.UltimoNome) ||
-            //    autor.Nascimento is null)
-            //{
-            //    throw new ArgumentNullException(nameof(livroAutorCreateModel.Autor), "Dados de autor não podem ser vazios!");
-            //}
+            await _adoNetScopedContext.BeginTransactionAsync();
 
+            var autorId = await _autorRepository.AddAsync(livroAutorCreateModel.Autor);
 
-            //TODO: Pesquisar uma solução melhor de Transaction com ADO.NET e arquitetura em camadas!!
-            SqlTransaction sqlTransaction = null;
-            SqlConnection sqlConnection = null;
-            try
-            {
-                int autorId;
-                (autorId, sqlConnection, sqlTransaction) =
-                    await _autorRepository.AddAsync(livroAutorCreateModel.Autor);
+            livroAutorCreateModel.Livro.AutorId = autorId;
 
-                livroAutorCreateModel.Livro.AutorId = autorId;
+            var livroId =
+                await _livroRepository.AddAsync(livroAutorCreateModel.Livro);
 
-                var livroId =
-                    await _livroRepository.AddAsync(livroAutorCreateModel.Livro, sqlConnection, sqlTransaction);
+            await _adoNetScopedContext.CommitAsync();
 
-                sqlTransaction.Commit();
-
-                return livroId;
-            }
-            catch (Exception e)
-            {
-                sqlTransaction?.Rollback();
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
-                if (sqlConnection != null)
-                {
-                    await sqlConnection.CloseAsync();
-                    await sqlConnection.DisposeAsync();
-                }
-
-                if (sqlTransaction != null)
-                {
-                    await sqlTransaction.DisposeAsync();
-                }
-            }
+            return livroId;
         }
 
         public async Task EditAsync(LivroModel livroModel)

@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Domain.Model.Interfaces.Context;
 using Domain.Model.Interfaces.Repositories;
 using Domain.Model.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data.Repositories
 {
     public class LivroSqlRepository : ILivroRepository
     {
-        private static string _connectionString;
+        private readonly IAdoNetScopedContext _adoNetScopedContext;
 
         public LivroSqlRepository(
-            IConfiguration configuration)
+            IAdoNetScopedContext adoNetScopedContext)
         {
-            _connectionString = configuration.GetConnectionString("BibliotecaDatabase");
+            _adoNetScopedContext = adoNetScopedContext;
         }
 
         public async Task<IEnumerable<LivroModel>> GetAllAsync()
@@ -24,13 +23,10 @@ namespace Infrastructure.Data.Repositories
             const string commandText =
                 "SELECT Id, Titulo, Isbn, Publicacao, AutorId FROM Livro";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
-            await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();
 
             var idColumnIndex = reader.GetOrdinal("Id");
@@ -65,17 +61,14 @@ namespace Infrastructure.Data.Repositories
             const string commandText =
                 "SELECT Id, Titulo, Isbn, Publicacao, AutorId FROM Livro WHERE Id = @id;";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@id", SqlDbType.Int)
                 .Value = id;
 
-            await sqlConnection.OpenAsync();
             var reader = await sqlCommand.ExecuteReaderAsync();
 
             var canRead = await reader.ReadAsync();
@@ -96,27 +89,15 @@ namespace Infrastructure.Data.Repositories
         public async Task<int> AddAsync(
             LivroModel livroModel)
         {
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await sqlConnection.OpenAsync();
-
-            return await AddAsync(livroModel, sqlConnection);
-        }
-
-        public async Task<int> AddAsync(
-            LivroModel livroModel,
-            SqlConnection sqlConnection,
-            SqlTransaction sqlTransaction = null)
-        {
             const string commandText =
 @"INSERT INTO Livro
 	(Titulo, Isbn, Publicacao, AutorId)
     OUTPUT INSERTED.Id
 	VALUES (@titulo, @isbn, @publicacao, @autorId);";
 
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@titulo", SqlDbType.NVarChar)
@@ -131,11 +112,6 @@ namespace Infrastructure.Data.Repositories
                 .Add("@autorId", SqlDbType.Int)
                 .Value = livroModel.AutorId;
 
-            if (sqlTransaction != null)
-            {
-                sqlCommand.Transaction = sqlTransaction;
-            }
-
             var outputId = (int)await sqlCommand.ExecuteScalarAsync();
 
             return outputId;
@@ -148,11 +124,9 @@ namespace Infrastructure.Data.Repositories
 	SET Titulo = @titulo, Isbn = @isbn, Publicacao = @publicacao, AutorId = @autorId
 	WHERE Id = @id;";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@titulo", SqlDbType.NVarChar)
@@ -170,8 +144,6 @@ namespace Infrastructure.Data.Repositories
                 .Add("@id", SqlDbType.Int)
                 .Value = autorModel.Id;
 
-            await sqlConnection.OpenAsync();
-
             await sqlCommand.ExecuteScalarAsync();
         }
 
@@ -179,17 +151,13 @@ namespace Infrastructure.Data.Repositories
         {
             const string commandText = "DELETE FROM Livro WHERE Id = @id";
 
-            await using var sqlConnection = new SqlConnection(_connectionString);
-            await using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-            {
-                CommandType = CommandType.Text
-            };
+            var sqlCommand = _adoNetScopedContext.CreateCommand();
+            sqlCommand.CommandType = CommandType.Text;
+            sqlCommand.CommandText = commandText;
 
             sqlCommand.Parameters
                 .Add("@id", SqlDbType.Int)
                 .Value = autorModel.Id;
-
-            await sqlConnection.OpenAsync();
 
             await sqlCommand.ExecuteScalarAsync();
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Domain.Model.Models;
 
@@ -11,10 +10,6 @@ namespace Domain.Model.Interfaces.Repositories
         Task<LivroModel> GetByIdAsync(int id);
         Task<int> AddAsync(
             LivroModel livroModel);
-        Task<int> AddAsync(
-            LivroModel autorModel, 
-            SqlConnection sqlConnection, 
-            SqlTransaction sqlTransaction);
         Task EditAsync(LivroModel autorModel);
         Task RemoveAsync(LivroModel autorModel);
     }
